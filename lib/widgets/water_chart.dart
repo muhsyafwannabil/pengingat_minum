@@ -22,9 +22,7 @@ class WaterChart extends StatelessWidget {
     for (int i = 0; i < last7Days.length; i++) {
       String date = last7Days[i];
       int waterCount = waterData[date] ?? 0;
-
-      // Cegah nilai Infinity atau negatif
-      double safeWaterCount = waterCount.isFinite && waterCount >= 0 ? waterCount.toDouble() : 0;
+      double safeWaterCount = waterCount >= 0 ? waterCount.toDouble() : 0;
 
       barGroups.add(
         BarChartGroupData(
@@ -74,7 +72,11 @@ class WaterChart extends StatelessWidget {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        return Text(dayLabels[value.toInt()], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold));
+                        int index = value.toInt();
+                        if (index >= 0 && index < dayLabels.length) {
+                          return Text(dayLabels[index], style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold));
+                        }
+                        return const SizedBox.shrink();
                       },
                     ),
                   ),
