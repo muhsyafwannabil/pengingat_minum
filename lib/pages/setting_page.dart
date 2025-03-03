@@ -19,17 +19,17 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> loadTarget() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      dailyTarget = prefs.getInt('dailyTarget') ?? 8;
-    });
+    int? savedTarget = prefs.getInt('dailyTarget');
+    if (savedTarget != null) {
+      setState(() {
+        dailyTarget = savedTarget;
+      });
+    }
   }
 
   Future<void> saveTarget(int newTarget) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('dailyTarget', newTarget);
-    setState(() {
-      dailyTarget = newTarget;
-    });
   }
 
   @override
@@ -53,6 +53,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     divisions: 11,
                     label: dailyTarget.toString(),
                     onChanged: (value) {
+                      setState(() {
+                        dailyTarget = value.toInt();
+                      });
+                    },
+                    onChangeEnd: (value) {
                       saveTarget(value.toInt());
                     },
                   ),
