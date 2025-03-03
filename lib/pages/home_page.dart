@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import '../widgets/water_chart.dart';
-// import 'settings_page.dart';
   
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,14 +13,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int dailyTarget = 8; // Target harian
+  int dailyTarget = 8; // Target harian default
   Map<String, int> waterData = {}; // Data jumlah air
-  String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now()); // Tanggal terpilih
+  String selectedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   @override
   void initState() {
     super.initState();
     loadWaterData();
+    loadDailyTarget();
   }
 
   Future<void> loadWaterData() async {
@@ -29,20 +29,26 @@ class _HomePageState extends State<HomePage> {
     String? dataString = prefs.getString('waterData');
     if (dataString != null) {
       setState(() {
-        waterData = Map<String, int>.from(jsonDecode(dataString));
+        waterData = Map<String, int>.from(jsonDecode(dataString))
+            .map((key, value) => MapEntry(key, value < 0 ? 0 : value));
       });
     }
   }
 
+  Future<void> loadDailyTarget() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      dailyTarget = prefs.getInt('dailyTarget') ?? 8;
+    });
+  }
+
   Future<void> updateWaterCount(int change) async {
     final prefs = await SharedPreferences.getInstance();
-    
     setState(() {
       int currentValue = waterData[selectedDate] ?? 0;
       int newValue = currentValue + change;
-      waterData[selectedDate] = newValue < 0 ? 0 : newValue; // Tidak boleh negatif
+      waterData[selectedDate] = newValue < 0 ? 0 : newValue;
     });
-
     await prefs.setString('waterData', jsonEncode(waterData));
   }
 
@@ -57,6 +63,7 @@ class _HomePageState extends State<HomePage> {
     if (pickedDate != null) {
       setState(() {
         selectedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+        waterData[selectedDate] = waterData[selectedDate] ?? 0;
       });
     }
   }
@@ -93,11 +100,10 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            // TOMBOL PILIH TANGGAL
             ElevatedButton.icon(
               onPressed: pickDate,
               icon: const Icon(Icons.calendar_today),
-              label: Text(DateFormat('EEEE, dd MMM yyyy').format(DateTime.parse(selectedDate)), // Format tanggal lebih rapi
+              label: Text(DateFormat('EEEE, dd MMM yyyy').format(DateTime.parse(selectedDate)),
                   style: const TextStyle(fontSize: 16)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueGrey,
@@ -107,15 +113,14 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 20),
 
-            Expanded(child: WaterChart(waterData: waterData, target: dailyTarget)), // GRAFIK
+            Expanded(child: WaterChart(waterData: waterData, target: dailyTarget)),
 
             const SizedBox(height: 20),
-            // TOMBOL TAMBAH & KURANGI
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton.icon(
-                  onPressed: () => updateWaterCount(-1), // Kurangi
+                  onPressed: () => updateWaterCount(-1),
                   icon: const Icon(Icons.remove),
                   label: const Text('Kurangi'),
                   style: ElevatedButton.styleFrom(
@@ -127,7 +132,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(width: 20),
                 ElevatedButton.icon(
-                  onPressed: () => updateWaterCount(1), // Tambah
+                  onPressed: () => updateWaterCount(1),
                   icon: const Icon(Icons.local_drink),
                   label: const Text('Tambah'),
                   style: ElevatedButton.styleFrom(
