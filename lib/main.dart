@@ -13,8 +13,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Pengingat Minum Air',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomePage(), 
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.blue,
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontSize: 16),
+          titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      ),
+      home: const HomePage(),
     );
   }
 }
